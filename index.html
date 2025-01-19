@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Produtos e Pedidos</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Gestão de Produtos e Pedidos</h1>
+  </header>
+
+  <nav>
+    <a href="#" id="menu-dashboard">Dashboard</a>
+    <a href="#" id="menu-products">Cadastrar Produtos</a>
+    <a href="#" id="menu-orders">Montar Pedido</a>
+    <a href="#" id="menu-all-orders">Listar Pedidos</a>
+  </nav>
+
+  <div class="container" id="dashboard">
+    <h2>Dashboard</h2>
+    <div class="dashboard-cards">
+      <div class="card" id="total-revenue">Receita Total (Mês): R$ 0.00</div>
+      <div class="card" id="total-orders-month">Pedidos (Mês): 0</div>
+      <div class="card" id="total-orders-day">Pedidos (Dia): 0</div>
+      <div class="card" id="top-product">Produto Mais Vendido: -</div>
+    </div>
+
+    <div class="dashboard-charts">
+      <div class="chart">
+        <h3>Receita na Última Semana</h3>
+        <canvas id="weekly-revenue-chart" width="400" height="200"></canvas>
+      </div>
+      <div class="chart">
+        <h3>Produtos Mais Vendidos (Top 12)</h3>
+        <canvas id="top-products-chart" width="400" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="container hidden" id="product-form">
+    <h2>Cadastrar Produto</h2>
+    <label for="product-name">Nome do Produto</label>
+    <input type="text" id="product-name" placeholder="Digite o nome do produto">
+
+    <label for="product-price">Preço do Produto</label>
+    <input type="number" id="product-price" placeholder="Digite o preço do produto">
+
+    <label for="product-category">Categoria do Produto</label>
+    <input type="text" id="product-category" placeholder="Digite a categoria do produto">
+
+    <button id="add-product">Adicionar Produto</button>
+
+    <h3>Produtos Cadastrados</h3>
+
+    <div>
+        <button id="export-products">Exportar Produtos para Excel</button>
+    </div>
+
+    <table id="product-table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Preço</th>
+          <th>Categoria</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Produtos serão adicionados aqui -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="container hidden" id="order-form">
+    <h2>Montar Pedido</h2>
+    <label for="order-product">Selecione o Produto</label>
+    <select id="order-product">
+      <!-- Produtos serão carregados aqui -->
+    </select>
+
+    <label for="order-quantity">Quantidade</label>
+    <input type="number" id="order-quantity" min="1" value="1">
+
+    <button id="add-to-order">Adicionar ao Pedido</button>
+
+    <h3>Itens do Pedido</h3>
+
+    <table id="order-table">
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Quantidade</th>
+          <th>Subtotal</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Itens do pedido serão adicionados aqui -->
+      </tbody>
+    </table>
+
+    <div class="total">Total: R$ <span id="order-total">0.00</span></div>
+    <button id="finalize-order">Finalizar Pedido</button>
+  </div>
+
+  <div class="container hidden" id="all-orders">
+    <h2>Todos os Pedidos</h2>
+
+    <div>
+        <button id="export-orders">Exportar Pedidos para Excel</button>
+    </div>
+
+    <table id="all-orders-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Itens</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Pedidos serão listados aqui -->
+      </tbody>
+    </table>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.18.5/package/dist/xlsx.full.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
