@@ -486,9 +486,7 @@ const loadOrders = () => {
     document.getElementById(`print-order-${index}`).addEventListener('click', () => {
       const zpl = generateZPL(index, order);
 
-      console.log(zpl);
-
-      // printOrder(zpl);
+      printOrder(zpl);
     });
   });
 }
@@ -631,7 +629,7 @@ async function sendToZebra(zpl) {
     alert('Pedido enviado para a impressora com sucesso!');
   } catch (error) {
     console.error('Erro ao se conectar à impressora:', error);
-    // alert('Erro ao enviar para a impressora. Verifique se o WebUSB é compatível.');
+    alert('Erro ao enviar para a impressora. Verifique se o WebUSB é compatível.');
   }
 }
 
