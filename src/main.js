@@ -468,7 +468,7 @@ const loadOrders = () => {
       <tr>
         <td>${index + 1}</td>
         <td>${items}</td>
-        <td title="${order.description}">${order.description || 'Sem descrição'}</td>
+        <td class="description" title="${order.description}">${order.description || 'Sem descrição'}</td>
         <td>R$ ${order.total.toFixed(2)}</td>
         <td>${order.date}</td>
         <td class="actions">
@@ -484,29 +484,127 @@ const loadOrders = () => {
     allOrdersTableBody.innerHTML += row;
 
     document.getElementById(`print-order-${index}`).addEventListener('click', () => {
-      const zpl = generateZPL(order);
-      printOrder(zpl);
+      const zpl = generateZPL(index, order);
+
+      console.log(zpl);
+
+      // printOrder(zpl);
     });
   });
 }
 
-function generateZPL(order) {
-  const items = order.items
-    .map(item => `${item.quantity}x ${item.name}`)
+const breakTextIntoLines = (text, maxCharsPerLine) => {
+  const words = text.split(' ');
+  const lines = [];
+  let currentLine = '';
+
+  words.forEach(word => {
+    if ((currentLine + word).length > maxCharsPerLine) {
+      lines.push(currentLine.trim());
+      currentLine = word + ' ';
+    } else {
+      currentLine += word + ' ';
+    }
+  });
+
+  if (currentLine.trim().length > 0) {
+    lines.push(currentLine.trim());
+  }
+
+  return lines;
+};
+
+function generateZPL(index, order) {
+  // Função para quebrar texto em várias linhas com base em um limite de caracteres
+  const breakTextIntoLines = (text, maxCharsPerLine) => {
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+
+    words.forEach(word => {
+      if ((currentLine + word).length > maxCharsPerLine) {
+        lines.push(currentLine.trim());
+        currentLine = word + ' ';
+      } else {
+        currentLine += word + ' ';
+      }
+    });
+
+    if (currentLine.trim().length > 0) {
+      lines.push(currentLine.trim());
+    }
+
+    return lines;
+  };
+
+  // Converter e formatar a data corretamente
+  const formattedDate = new Date(order.id).toLocaleDateString('pt-BR'); // Formato DD/MM/YYYY
+  const formattedTime = new Date(order.id).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+  // Quebrar a descrição em várias linhas, se necessário
+  const descriptionLines = breakTextIntoLines(order.description || 'Sem descrição', 40);
+
+  // Gerar o ZPL para os itens
+  let currentY = 356; // Posição inicial para os itens
+  const itemsZPL = order.items
+    .map(item => {
+      const itemNameLines = breakTextIntoLines(item.name, 20); // Quebrar o nome do item
+      const linesZPL = itemNameLines.map((line, index) => {
+        const yPosition = currentY + index * 30; // Incrementar a posição Y para cada linha do nome
+        if (index === 0) {
+          // Primeira linha do item inclui quantidade, unitário e subtotal
+          return `^FO16,${yPosition}^A0N,22,22^FD${item.quantity.toString().padStart(3)} ${line.padEnd(20)} R$ ${item.price
+            .toFixed(2)
+            .padStart(7)} ${item.subtotal.toFixed(2).padStart(10)}^FS`;
+        } else {
+          // Linhas subsequentes incluem apenas o nome do item
+          return `^FO16,${yPosition}^A0N,22,22^FD    ${line.padEnd(20)}^FS`;
+        }
+      });
+      currentY += itemNameLines.length * 30; // Atualizar a posição Y com base no número de linhas do nome
+      return linesZPL.join('\n');
+    })
     .join('\n');
 
-  // Formatar as informações do pedido no formato ZPL
+  // Adicionar as linhas da descrição ao ZPL
+  const descriptionZPL = descriptionLines
+    .map((line, index) => `^FO16,${176 + index * 30}^A0N,25,25^FD${line}^FS`)
+    .join('\n');
+
+  // Calcular a altura dinâmica do documento
+  const descriptionHeight = descriptionLines.length * 30; // Altura das linhas de descrição
+  const itemsHeight = currentY - 356; // Altura dinâmica dos itens
+
+  // ZPL ajustado
   return `
 ^XA
-^CF0,30
-^FO50,50^FDID do Pedido: ${order.id}^FS
-^FO50,100^FDData: ${order.date}^FS
-^FO50,150^FDDescrição: ${order.description || 'Sem descrição'}^FS
-^FO50,200^FDItens:^FS
-^CF0,25
-^FO50,250^FD${items.replace(/\n/g, '^FS^FO50,300^FD')}^FS
-^CF0,30
-^FO50,350^FDTotal: R$ ${Number(order.total).toFixed(2)}^FS
+^PW560       // Define a largura do documento em 560 dots (~7 cm a 203 DPI)
+^LL${700 + descriptionHeight + itemsHeight}       // Altura dinâmica do documento
+^LH8,16      // Padding: 8px nas laterais e 16px no topo
+^FO16,16^A0N,30,30^FDObrigado por comprar com a gente!^FS
+^FO16,56^A0N,25,25^FDControle: 0000000${index}^FS
+
+^FO16,96^GB528,1,3^FS // Linha divisória
+
+^FO16,116^A0N,25,25^FDData: ${formattedDate}^FS
+^FO16,146^A0N,25,25^FDHora: ${formattedTime}^FS
+
+${descriptionZPL}
+
+^FO16,${176 + descriptionHeight + 20}^GB528,1,3^FS // Linha divisória
+
+^FO16,${196 + descriptionHeight + 20}^A0N,25,25^FDQTD   DESCRIÇÃO            UNIT      VALOR^FS
+^FO16,${226 + descriptionHeight + 20}^GB528,1,3^FS // Linha divisória
+
+${itemsZPL}
+
+^FO16,${currentY + 20}^GB528,1,3^FS // Linha divisória
+
+^FO16,${currentY + 40}^A0N,25,25^FDSUBTOTAL                                                        R$ ${order.total.toFixed(2).padStart(7)}^FS
+
+^FO16,${currentY + 80}^GB528,1,3^FS // Linha divisória
+
+^FO16,${currentY + 100}^A0N,30,30^FDTOTAL                                                R$ ${order.total.toFixed(2).padStart(7)}^FS
 ^XZ
   `;
 }
@@ -533,7 +631,7 @@ async function sendToZebra(zpl) {
     alert('Pedido enviado para a impressora com sucesso!');
   } catch (error) {
     console.error('Erro ao se conectar à impressora:', error);
-    alert('Erro ao enviar para a impressora. Verifique se o WebUSB é compatível.');
+    // alert('Erro ao enviar para a impressora. Verifique se o WebUSB é compatível.');
   }
 }
 
@@ -570,8 +668,7 @@ const deleteOrder = (orderId) => {
     } else {
         alert('Pedido não encontrado!');
     }
-};
-
+}
 
 // Exibir detalhes do pedido (exemplo de funcionalidade extra)
 const viewOrderDetails = (orderId) => {

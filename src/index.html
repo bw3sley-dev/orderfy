@@ -146,12 +146,12 @@
                             <input type="text" class="form-control" id="product-category" placeholder="Digite a categoria do produto">
                         </div>
 
-                        <button class="cta cta-primary" id="add-product">Adicionar</button>
+                        <button type="button" class="cta cta-primary" id="add-product">Adicionar</button>
                     </fieldset>
                 
                     <div class="table-wrapper">
                         <div>
-                            <button class="cta cta-outline" id="export-products">
+                            <button type="button" class="cta cta-outline" id="export-products">
                                 <i class="ph ph-file-xls"></i>
                                 
                                 Exportar para excel
@@ -196,12 +196,7 @@
                             <input type="number" class="form-control" id="order-quantity" min="1" value="1">
                         </div>
 
-                        <div class="form-item textarea">
-                            <label for="order-description">Descrição do pedido</label>
-                            <textarea id="order-description" class="form-control" placeholder="Digite uma descrição para o pedido"></textarea>
-                        </div>
-
-                        <button class="cta cta-primary" id="add-to-order">Adicionar</button>
+                        <button type="button" class="cta cta-primary" id="add-to-order">Adicionar</button>
                     </fieldset>            
             
                     <div class="table-wrapper">
@@ -226,8 +221,15 @@
                     </div>
             
                     <div class="floating-footer">
-                        <div class="total">Total: <span class="total-value" id="order-total">R$ 0.00</span></div>
-                        <button class="cta cta-primary" id="finalize-order">Finalizar pedido</button>
+                        <div class="finish-order">
+                            <div class="total">Total: <span class="total-value" id="order-total">R$ 0.00</span></div>
+                            <button type="button" class="cta cta-primary" id="finalize-order">Finalizar pedido</button>
+                        </div>
+                        
+                        <div class="form-item textarea">
+                            <!-- <label for="order-description">Descrição do pedido</label> -->
+                            <textarea id="order-description" class="form-control" placeholder="Digite uma descrição para o pedido"></textarea>
+                        </div>
                     </div>
                 </div>
             
@@ -236,7 +238,7 @@
             
                     <div class="table-wrapper">
                         <div>
-                            <button class="cta cta-outline" id="export-orders">
+                            <button type="button" class="cta cta-outline" id="export-orders">
                                 <i class="ph ph-file-xls"></i>
 
                                 Exportar para excel

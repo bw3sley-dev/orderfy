@@ -418,9 +418,12 @@ nav a[data-current="true"] {
     width: 320px;
   }
 
-  /* .table th.description {
-    width: 240px;
-  } */
+  .table td.description {
+    max-width: 140px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
 
   .table th.category {
     width: 180px;
@@ -451,8 +454,7 @@ nav a[data-current="true"] {
   
 .floating-footer {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     gap: 1rem;
 
     position: fixed;
@@ -464,6 +466,12 @@ nav a[data-current="true"] {
     border-top: 1px solid hsl(var(--border));
 }
 
+.finish-order {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
 .floating-footer .total-value {
     font-size: 1.5rem;
     font-weight: 600;
@@ -473,6 +481,22 @@ nav a[data-current="true"] {
 .floating-footer .total {
     color: hsl(var(--muted-foreground));
 }  
+
+.total-description {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-item.textarea {
+    flex-direction: column;
+    align-items: start;
+}
+
+.form-item.textarea textarea {
+    height: 4rem;
+    width: 100%;
+}
 
 @media (min-width: 1024px) {
     header nav {
