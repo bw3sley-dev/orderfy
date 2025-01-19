@@ -33,6 +33,16 @@ menuLinks.forEach(link => {
       }
     });
 
+    // Atualizar o título da página
+    const titles = {
+      "dashboard": 'Início | orderfy',
+      "products": 'Produtos | orderfy',
+      "orders": 'Criar Pedido | orderfy',
+      "all-orders": 'Pedidos | orderfy',
+    };
+    
+    document.title = titles[sectionId] || 'orderfy';
+
     // Executar ações específicas por seção
     if (sectionId === 'dashboard') {
       updateDashboard();
@@ -40,9 +50,8 @@ menuLinks.forEach(link => {
       loadProducts();
     } else if (sectionId === 'orders') {
       loadOrderProducts();
-    }
-    else if (sectionId === "all-orders") {
-       loadOrders();
+    } else if (sectionId === "all-orders") {
+      loadOrders();
     }
   });
 });
