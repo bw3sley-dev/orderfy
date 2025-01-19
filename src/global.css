@@ -415,8 +415,12 @@ nav a[data-current="true"] {
   }
 
   .table th.itens {
-    width: 480px;
+    width: 320px;
   }
+
+  /* .table th.description {
+    width: 240px;
+  } */
 
   .table th.category {
     width: 180px;

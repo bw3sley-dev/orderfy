@@ -421,59 +421,140 @@ const deleteOrderItem = (index) => {
 
 // Finalizar pedido
 finalizeOrderButton.addEventListener('click', () => {
-    if (currentOrder.length === 0) {
-        alert('Adicione itens ao pedido antes de finalizar!');
-        return;
-    }
+  if (currentOrder.length === 0) {
+    alert('Adicione itens ao pedido antes de finalizar!');
+    return;
+  }
 
-    const allOrders = JSON.parse(localStorage.getItem('allOrders')) || [];
-    const orderId = new Date().toISOString(); // ID único
-    const orderDate = new Date().toLocaleDateString('pt-BR'); // Data formatada como DD/MM/YYYY
-    const total = currentOrder.reduce((sum, item) => sum + item.subtotal, 0);
+  const allOrders = JSON.parse(localStorage.getItem('allOrders')) || [];
+  const orderId = new Date().toISOString(); // Usado como ID único
+  const orderDate = new Date().toLocaleDateString('pt-BR'); // Data no formato DD/MM/YYYY
+  const description = document.getElementById('order-description').value.trim(); // Captura a descrição do pedido
+  const total = currentOrder.reduce((sum, item) => sum + item.subtotal, 0);
 
-    allOrders.push({
-        id: orderId,
-        date: orderDate, // Data salva no formato brasileiro
-        items: currentOrder,
-        total,
-    });
+  if (!description) {
+    alert('Por favor, adicione uma descrição para o pedido!');
+    return;
+  }
 
-    localStorage.setItem('allOrders', JSON.stringify(allOrders));
-    currentOrder = [];
-    updateOrderTable();
-    alert('Pedido finalizado com sucesso!');
+  allOrders.push({
+    id: orderId,
+    date: orderDate,
+    description, // Adiciona a descrição ao pedido
+    items: currentOrder,
+    total,
+  });
+
+  localStorage.setItem('allOrders', JSON.stringify(allOrders));
+  currentOrder = [];
+  document.getElementById('order-description').value = ''; // Limpa o campo de descrição
+  updateOrderTable();
+  alert('Pedido finalizado com sucesso!');
 });
 
 const allOrdersTableBody = document.getElementById('all-orders-table').querySelector('tbody');
 
 // Carregar pedidos na aba "Listar Pedidos"
 const loadOrders = () => {
-    const allOrders = JSON.parse(localStorage.getItem('allOrders')) || [];
-    allOrdersTableBody.innerHTML = '';
+  const allOrders = JSON.parse(localStorage.getItem('allOrders')) || [];
+  allOrdersTableBody.innerHTML = '';
 
-    allOrders.forEach((order, index) => {
-        const items = order.items
-            .map(item => `${item.quantity}x ${item.name}`)
-            .join(', ');
+  allOrders.forEach((order, index) => {
+    const items = order.items
+      .map(item => `${item.quantity}x ${item.name}`)
+      .join(', ');
 
-        const row = `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${items}</td>
-          <td>R$ ${order.total.toFixed(2)}</td>
-          <td>${order.date}</td>
-          <td class="actions">
-            <button type="button" class="cta cta-outline" onclick="viewOrderDetails('${order.id}')">Ver detalhes</button>
-            <button type="button" class="cta cta-ghost" onclick="deleteOrder('${order.id}')">
-                <i class="ph ph-x"></i>
-                Cancelar
-            </button>
-          </td>
-        </tr>
-      `;
-        allOrdersTableBody.innerHTML += row;
+    const row = `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${items}</td>
+        <td title="${order.description}">${order.description || 'Sem descrição'}</td>
+        <td>R$ ${order.total.toFixed(2)}</td>
+        <td>${order.date}</td>
+        <td class="actions">
+          <button type="button" class="cta cta-outline" id="print-order-${index}">Imprimir</button>
+          <button type="button" class="cta cta-ghost" onclick="deleteOrder('${order.id}')">
+              <i class="ph ph-x"></i>
+              Cancelar
+          </button>
+        </td>
+      </tr>
+    `;
+
+    allOrdersTableBody.innerHTML += row;
+
+    document.getElementById(`print-order-${index}`).addEventListener('click', () => {
+      const zpl = generateZPL(order);
+      printOrder(zpl);
     });
-};
+  });
+}
+
+function generateZPL(order) {
+  const items = order.items
+    .map(item => `${item.quantity}x ${item.name}`)
+    .join('\n');
+
+  // Formatar as informações do pedido no formato ZPL
+  return `
+^XA
+^CF0,30
+^FO50,50^FDID do Pedido: ${order.id}^FS
+^FO50,100^FDData: ${order.date}^FS
+^FO50,150^FDDescrição: ${order.description || 'Sem descrição'}^FS
+^FO50,200^FDItens:^FS
+^CF0,25
+^FO50,250^FD${items.replace(/\n/g, '^FS^FO50,300^FD')}^FS
+^CF0,30
+^FO50,350^FDTotal: R$ ${Number(order.total).toFixed(2)}^FS
+^XZ
+  `;
+}
+
+async function sendToZebra(zpl) {
+  try {
+    // Solicitar permissão para acessar o dispositivo USB
+    const device = await navigator.usb.requestDevice({
+      filters: [{ vendorId: 0x0A5F }], // Substitua pelo vendorId da sua impressora
+    });
+
+    // Abrir conexão com o dispositivo
+    await device.open();
+    if (device.configuration === null) {
+      await device.selectConfiguration(1);
+    }
+    await device.claimInterface(0);
+
+    // Converter o ZPL em bytes e enviar para a impressora
+    const encoder = new TextEncoder();
+    const data = encoder.encode(zpl);
+    await device.transferOut(1, data); // Transferir dados para o endpoint da impressora
+
+    alert('Pedido enviado para a impressora com sucesso!');
+  } catch (error) {
+    console.error('Erro ao se conectar à impressora:', error);
+    alert('Erro ao enviar para a impressora. Verifique se o WebUSB é compatível.');
+  }
+}
+
+function printOrder(zpl) {
+  // Criar um arquivo de texto com o ZPL
+  const blob = new Blob([zpl], { type: 'text/plain' });
+  const url = window.URL.createObjectURL(blob);
+
+  // Criar um link para download
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'pedido.zpl';
+  document.body.appendChild(a);
+  a.click();
+
+  // Limpar o URL
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+
+  sendToZebra(zpl);
+}
 
 const deleteOrder = (orderId) => {
     const allOrders = JSON.parse(localStorage.getItem('allOrders')) || [];
