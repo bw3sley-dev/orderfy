@@ -14,35 +14,37 @@ const productTableBody = document.getElementById('product-table').querySelector(
 const orderProductSelect = document.getElementById('order-product');
 const addProductButton = document.getElementById('add-product');
 
-menuDashboard.addEventListener('click', () => {
-    dashboard.classList.remove('hidden');
-    productForm.classList.add('hidden');
-    orderForm.classList.add('hidden');
-    allOrdersForm.classList.add('hidden');
-    updateDashboard();
-});
+// Selecionar todos os links do menu
+const menuLinks = document.querySelectorAll('nav a');
 
-menuProducts.addEventListener('click', () => {
-    dashboard.classList.add('hidden');
-    productForm.classList.remove('hidden');
-    orderForm.classList.add('hidden');
-    allOrdersForm.classList.add('hidden');
-    loadProducts();
-});
+menuLinks.forEach(link => {
+  link.addEventListener('click', (event) => {
+    // Atualizar o atributo data-current
+    menuLinks.forEach(menu => menu.setAttribute('data-current', 'false'));
+    link.setAttribute('data-current', 'true');
 
-menuOrders.addEventListener('click', () => {
-    dashboard.classList.add('hidden');
-    productForm.classList.add('hidden');
-    orderForm.classList.remove('hidden');
-    allOrdersForm.classList.add('hidden');
-    loadOrderProducts();
-});
+    // Exibir/ocultar as seções correspondentes
+    const sectionId = link.getAttribute('href').substring(1);
+    document.querySelectorAll('.container').forEach(section => {
+      if (section.id === sectionId) {
+        section.classList.remove('hidden');
+      } else {
+        section.classList.add('hidden');
+      }
+    });
 
-menuAllOrders.addEventListener('click', () => {
-    dashboard.classList.add('hidden');
-    productForm.classList.add('hidden');
-    orderForm.classList.add('hidden');
-    allOrdersForm.classList.remove('hidden');
+    // Executar ações específicas por seção
+    if (sectionId === 'dashboard') {
+      updateDashboard();
+    } else if (sectionId === 'products') {
+      loadProducts();
+    } else if (sectionId === 'orders') {
+      loadOrderProducts();
+    }
+    else if (sectionId === "all-orders") {
+       loadOrders();
+    }
+  });
 });
 
 const saveProduct = (name, price) => {
@@ -61,9 +63,9 @@ const loadProducts = () => {
           <td>${product.name}</td>
           <td>R$ ${product.price.toFixed(2)}</td>
           <td>${product.category}</td>
-          <td>
-            <button onclick="editProduct(${index})">Editar</button>
-            <button onclick="deleteProduct(${index})">Excluir</button>
+          <td class="actions">
+            <button class="cta cta-outline" onclick="editProduct(${index})">Editar</button>
+            <button class="cta cta-ghost" onclick="deleteProduct(${index})">Excluir</button>
           </td>
         </tr>
       `;
@@ -86,7 +88,7 @@ const editProduct = (index) => {
         alert('Produto atualizado com sucesso!');
         loadProducts();
     } else {
-        alert('Entrada inválida! Tente novamente.');
+        // alert('Entrada inválida! Tente novamente.');
     }
 };
 
@@ -147,7 +149,7 @@ addProductButton.addEventListener('click', () => {
     if (existingProduct) {
         if (existingProduct.price === price && existingProduct.category.toLowerCase() === category.toLowerCase()) {
             // Mesmo nome, preço e categoria
-            alert('Produto já cadastrado com o mesmo nome, preço e categoria. Simulando cadastro.');
+            // alert('Produto já cadastrado com o mesmo nome, preço e categoria.');
             productNameInput.value = '';
             productPriceInput.value = '';
             document.getElementById('product-category').value = '';
@@ -164,7 +166,7 @@ addProductButton.addEventListener('click', () => {
                 existingProduct.price = price;
                 existingProduct.category = category;
                 localStorage.setItem('products', JSON.stringify(products));
-                alert('Produto atualizado com sucesso!');
+                // alert('Produto atualizado com sucesso!');
                 productNameInput.value = '';
                 productPriceInput.value = '';
                 document.getElementById('product-category').value = '';
@@ -189,14 +191,14 @@ const updateDashboard = () => {
     const products = JSON.parse(localStorage.getItem('products')) || [];
 
     const totalRevenue = allOrders.reduce((sum, order) => sum + order.total, 0);
-    document.getElementById('total-revenue').textContent = `Receita Total (Mês): R$ ${totalRevenue.toFixed(2)}`;
+    document.getElementById('total-revenue').textContent = `R$ ${totalRevenue.toFixed(2)}`;
 
     const totalOrdersMonth = allOrders.length;
-    document.getElementById('total-orders-month').textContent = `Pedidos (Mês): ${totalOrdersMonth}`;
+    document.getElementById('total-orders-month').textContent = `${totalOrdersMonth}`;
 
     const today = new Date().toISOString().split('T')[0];
     const totalOrdersDay = allOrders.filter(order => new Date(order.id).toISOString().split('T')[0] === today).length;
-    document.getElementById('total-orders-day').textContent = `Pedidos (Dia): ${totalOrdersDay}`;
+    document.getElementById('total-orders-day').textContent = `${totalOrdersDay}`;
 
     const productCounts = {};
     allOrders.forEach(order => {
@@ -206,7 +208,7 @@ const updateDashboard = () => {
     });
 
     const topProduct = Object.entries(productCounts).sort((a, b) => b[1] - a[1])[0] || ["-", 0];
-    document.getElementById('top-product').textContent = `Produto Mais Vendido: ${topProduct[0]} (${topProduct[1]})`;
+    document.getElementById('top-product').textContent = `${topProduct[0]} (${topProduct[1]})`;
 
     renderWeeklyRevenueChart(allOrders);
     renderTopProductsChart(productCounts);
@@ -240,9 +242,13 @@ const renderWeeklyRevenueChart = (orders) => {
             datasets: [{
                 label: 'Receita',
                 data: weeklyData.reverse(),
-                borderColor: '#4CAF50',
+                borderColor: '#8b5cf6',
                 fill: false,
             }]
+        },
+        options: {
+            responsive: true, // Permite redimensionamento automático
+            maintainAspectRatio: false, // Permite ajustar a proporção ao container
         }
     });
 };
@@ -250,31 +256,87 @@ const renderWeeklyRevenueChart = (orders) => {
 let topProductsChart; // Variável global para armazenar o gráfico de produtos mais vendidos
 
 const renderTopProductsChart = (productCounts) => {
-    const ctx = document.getElementById('top-products-chart').getContext('2d');
-    const sortedProducts = Object.entries(productCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 12);
+  const ctx = document.getElementById('top-products-chart').getContext('2d');
+  const sortedProducts = Object.entries(productCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12);
 
-    // Verifica se já existe um gráfico e o destrói antes de criar um novo
-    if (topProductsChart) {
-        topProductsChart.destroy();
-    }
+  // Função para truncar labels longas
+  const truncateLabel = (label, maxLength = 15) => {
+    return label.length > maxLength ? `${label.slice(0, maxLength)}...` : label;
+  };
 
-    // Cria um novo gráfico
-    topProductsChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: sortedProducts.map(p => p[0]),
-            datasets: [{
-                data: sortedProducts.map(p => p[1]),
-                backgroundColor: [
-                    '#FF6384', '#36A2EB', '#FFCE56', '#4CAF50', '#FF9F40', '#9966FF', '#FFCD56',
-                    '#FF6F91', '#A7FFEB', '#8C9EFF', '#B9FBC0', '#FFC400'
-                ]
-            }]
+  // Destroi o gráfico existente antes de criar um novo
+  if (topProductsChart) {
+    topProductsChart.destroy();
+  }
+
+  // Criação do gráfico de rosca estilizado
+  topProductsChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: sortedProducts.map(p => truncateLabel(`${p[0]} (${p[1]})`)), // Inclui o nome e valor no rótulo
+      datasets: [{
+        data: sortedProducts.map(p => p[1]),
+        backgroundColor: [
+          '#FF6384', '#36A2EB', '#FFCE56', '#4CAF50', '#FF9F40', '#9966FF',
+          '#FFCD56', '#FF6F91', '#A7FFEB', '#8C9EFF', '#B9FBC0', '#FFC400'
+        ],
+        borderColor: '#000', // Borda branca entre os elementos
+        borderWidth: 16, // Largura da borda visível
+        cutout: '75%', // Tamanho do corte central para deixar o donut mais fino
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false // Remove a legenda padrão
+        },
+        tooltip: {
+          enabled: true // Tooltip para detalhes ao passar o mouse
+        },
+        datalabels: {
+          color: '#b7b7b7', // Cor dos rótulos
+          font: {
+            size: 12
+          }
         }
-    });
-}
+      },
+      layout: {
+        padding: 24 // Espaçamento ao redor do gráfico
+      },
+    },
+    plugins: [{
+      id: 'externalLabels', // Plugin para posicionar os rótulos externos
+      beforeDraw(chart) {
+        const { ctx, chartArea, data } = chart;
+        const centerX = (chartArea.left + chartArea.right) / 2;
+        const centerY = (chartArea.top + chartArea.bottom) / 2;
+
+        ctx.textAlign = 'center';
+        ctx.font = '12px Rubik';
+
+        data.labels.forEach((label, i) => {
+        //   const angle = chart.getDatasetMeta(0).data[i].startAngle +
+        //     (chart.getDatasetMeta(0).data[i].endAngle - chart.getDatasetMeta(0).data[i].startAngle) / 2;
+
+        //   const radius = chart.getDatasetMeta(0).data[i].outerRadius;
+
+        //   // Calcula a posição das labels externas com ajuste para evitar sobreposição
+        //   const x = centerX + Math.cos(angle) * (radius + 30); // Distância extra do centro
+        //   const y = centerY + Math.sin(angle) * (radius + 30);
+
+          ctx.fillStyle = '#b7b7b7';
+        //   ctx.fillText(label, x, y);
+        });
+      }
+    }]
+  });
+};
+
+  
 
 // Elementos do pedido
 const addToOrderButton = document.getElementById('add-to-order');
@@ -332,13 +394,13 @@ const updateOrderTable = () => {
           <td>${item.name}</td>
           <td>${item.quantity}</td>
           <td>R$ ${item.subtotal.toFixed(2)}</td>
-          <td><button onclick="deleteOrderItem(${index})">Excluir</button></td>
+          <td class="actions"><button class="cta cta-ghost" onclick="deleteOrderItem(${index})">Excluir</button></td>
         </tr>
       `;
         orderTableBody.innerHTML += row;
     });
 
-    orderTotalSpan.textContent = total.toFixed(2);
+    orderTotalSpan.textContent = `R$ ${total.toFixed(2)}`;
 };
 
 const deleteOrderItem = (index) => {
@@ -391,9 +453,12 @@ const loadOrders = () => {
           <td>${items}</td>
           <td>R$ ${order.total.toFixed(2)}</td>
           <td>${order.date}</td>
-          <td>
-            <button onclick="viewOrderDetails('${order.id}')">Ver Detalhes</button>
-            <button onclick="deleteOrder('${order.id}')">Excluir</button>
+          <td class="actions">
+            <button type="button" class="cta cta-outline" onclick="viewOrderDetails('${order.id}')">Ver detalhes</button>
+            <button type="button" class="cta cta-ghost" onclick="deleteOrder('${order.id}')">
+                <i class="ph ph-x"></i>
+                Cancelar
+            </button>
           </td>
         </tr>
       `;
@@ -435,13 +500,13 @@ const viewOrderDetails = (orderId) => {
 };
 
 // Chamar a função ao clicar na aba "Listar Pedidos"
-menuAllOrders.addEventListener('click', () => {
-    dashboard.classList.add('hidden');
-    productForm.classList.add('hidden');
-    orderForm.classList.add('hidden');
-    allOrdersForm.classList.remove('hidden');
-    loadOrders();
-});
+// menuAllOrders.addEventListener('click', () => {
+//     dashboard.classList.add('hidden');
+//     productForm.classList.add('hidden');
+//     orderForm.classList.add('hidden');
+//     allOrdersForm.classList.remove('hidden');
+//     loadOrders();
+// });
 
 document.getElementById('export-products').addEventListener('click', () => {
     const products = JSON.parse(localStorage.getItem('products')) || [];
@@ -474,6 +539,11 @@ document.getElementById('export-orders').addEventListener('click', () => {
 
     XLSX.writeFile(workbook, 'pedidos.xlsx');
 });
+
+window.addEventListener('resize', () => {
+    if (weeklyRevenueChart) weeklyRevenueChart.resize();
+    if (topProductsChart) topProductsChart.resize();
+});  
 
 // Inicialização
 updateDashboard();

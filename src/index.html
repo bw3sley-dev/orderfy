@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="./global.css" />
+
+    <title>Início | orderfy</title>
+</head>
+<body>
+    <div id="root">
+        <div class="page-wrapper">
+            <header>
+                <div class="logo" title="orderfy">
+                    <i class="ph ph-pizza"></i>
+                </div>
+        
+                <div class="separator" data-orientation="vertical"></div>
+        
+                <nav>
+                    <a href="#dashboard" data-current="true" id="menu-dashboard">
+                        Início
+                    </a>
+                    
+                    <a href="#products" data-current="false" id="menu-products">
+                        Produtos
+                    </a>
+            
+                    <a href="#orders" data-current="false" id="menu-orders">
+                        Criar pedido
+                    </a>
+                    
+                    <a href="#all-orders" data-current="false" id="menu-all-orders">
+                        Pedidos
+                    </a>
+                </nav>
+            </header>
+
+            <div class="slot">
+                <div class="container" id="dashboard">
+                    <h1 class="title">Dashboard</h1>
+
+                    <div class="dashboard-cards">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Receita total (mês)</h3>
+
+                                <i class="ph ph-currency-dollar"></i>
+                            </div>
+
+                            <div class="card-body">
+                                <strong id="total-revenue">R$ 0.00</strong>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Pedidos (mês)</h3>
+
+                                <i class="ph ph-fork-knife"></i>
+                            </div>
+
+                            <div class="card-body">
+                                <strong id="total-orders-month">0</strong>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Pedidos (dia)</h3>
+
+                                <i class="ph ph-fork-knife"></i>
+                            </div>
+
+                            <div class="card-body">
+                                <strong id="total-orders-day">0</strong>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Produto mais vendido</h3>
+
+                                <i class="ph ph-currency-dollar"></i>
+                            </div>
+
+                            <div class="card-body">
+                                <strong id="top-product">-</strong>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <div class="dashboard-charts">
+                        <div class="card chart weekly-revenue-chart">
+                            <div class="card-header">
+                                <div>
+                                    <h3>Receita da última semana</h3>
+                                    <p>Receita diária no período</p>
+                                </div>
+
+                                <i class=""></i>
+                            </div>
+
+                            <div class="card-body">
+                                <canvas id="weekly-revenue-chart" width="400" height="180"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="card chart top-products-chart">
+                            <div class="card-header">
+                                <h3>Produtos mais vendidos</h3>
+                            </div>
+
+                            <div class="card-body">
+                                <canvas id="top-products-chart" width="400" height="400"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="container hidden" id="products">
+                    <h2 class="title">Produtos</h2>
+                    
+                    <fieldset class="form-fieldset">
+                        <div class="form-item">
+                            <label for="product-name">Nome do produto</label>
+                            <input type="text" class="form-control" id="product-name" placeholder="Digite o nome do produto">
+                        </div>
+
+                        <div class="form-item">
+                            <label for="product-price">Preço do produto</label>
+                            <input type="number" class="form-control" id="product-price" placeholder="Digite o preço do produto">
+                        </div>
+    
+                        <div class="form-item">
+                            <label for="product-category">Categoria do produto</label>
+                            <input type="text" class="form-control" id="product-category" placeholder="Digite a categoria do produto">
+                        </div>
+
+                        <button class="cta cta-primary" id="add-product">Adicionar</button>
+                    </fieldset>
+                
+                    <div class="table-wrapper">
+                        <div>
+                            <button class="cta cta-outline" id="export-products">
+                                <i class="ph ph-file-xls"></i>
+                                
+                                Exportar para excel
+                            </button>
+                        </div>
+                
+                        <div class="table-box">
+                            <div class="table-overflow">
+                                <table class="table" id="product-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="name">Nome</th>
+                                            <th>Preço</th>
+                                            <th class="category">Categoria</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+            
+                                    <tbody>
+                                        <!-- Produtos serão adicionados aqui -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="container hidden" id="orders">
+                    <h2 class="title">Criar pedido</h2>
+
+                    <fieldset class="form-fieldset">
+                        <div class="form-item">
+                            <label for="order-product">Selecione o produto</label>
+    
+                            <select class="form-select" id="order-product">
+                                <!-- Produtos serão carregados aqui -->
+                            </select>
+                        </div>
+
+                        <div class="form-item">
+                            <label for="order-quantity">Quantidade</label>
+                            <input type="number" class="form-control" id="order-quantity" min="1" value="1">
+                        </div>
+
+                        <button class="cta cta-primary" id="add-to-order">Adicionar</button>
+                    </fieldset>            
+            
+                    <div class="table-wrapper">
+                        <div class="table-box">
+                            <div class="table-overflow">
+                                <table class="table" id="order-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="name">Produto</th>
+                                            <th>Quantidade</th>
+                                            <th>Subtotal</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <!-- Itens do pedido serão adicionados aqui -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <div class="floating-footer">
+                        <div class="total">Total: <span class="total-value" id="order-total">R$ 0.00</span></div>
+                        <button class="cta cta-primary" id="finalize-order">Finalizar pedido</button>
+                    </div>
+                </div>
+            
+                <div class="container hidden" id="all-orders">
+                    <h2 class="title">Todos os Pedidos</h2>
+            
+                    <div class="table-wrapper">
+                        <div>
+                            <button class="cta cta-outline" id="export-orders">
+                                <i class="ph ph-file-xls"></i>
+
+                                Exportar para excel
+                            </button>
+                        </div>
+
+                        <div class="table-box">
+                            <div class="table-overflow">
+                                <table class="table" id="all-orders-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="id">#</th>
+                                            <th class="itens">Itens</th>
+                                            <th>Total</th>
+                                            <th>Data</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+            
+                                    <tbody>
+                                    <!-- Pedidos serão listados aqui -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.18.5/package/dist/xlsx.full.min.js"></script>
+    
+    <script src="./main.js"></script>
+</body>
+</html>
