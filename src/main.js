@@ -345,7 +345,57 @@ const renderTopProductsChart = (productCounts) => {
   });
 };
 
-  
+const importProductsInput = document.getElementById('import-products');
+
+importProductsInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    
+    if (!file) {
+        alert('Nenhum arquivo selecionado!');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const csvContent = e.target.result;
+        parseCSVAndAddProducts(csvContent);
+    };
+    reader.readAsText(file);
+});
+
+const parseCSVAndAddProducts = (csvContent) => {
+    const rows = csvContent.split('\n');
+    const products = JSON.parse(localStorage.getItem('products')) || [];
+
+    rows.forEach((row, index) => {
+        if (index === 0) return; // Ignorar o cabeçalho
+
+        const [name, price, category] = row.split(',');
+
+        if (name && price && category) {
+            const existingProduct = products.find(
+                (product) => product.name.toLowerCase() === name.trim().toLowerCase()
+            );
+
+            if (existingProduct) {
+                // Atualizar produto existente
+                existingProduct.price = parseFloat(price.trim());
+                existingProduct.category = category.trim();
+            } else {
+                // Adicionar novo produto
+                products.push({
+                    name: name.trim(),
+                    price: parseFloat(price.trim()),
+                    category: category.trim(),
+                });
+            }
+        }
+    });
+
+    localStorage.setItem('products', JSON.stringify(products));
+    alert('Produtos importados com sucesso!');
+    loadProducts(); // Atualizar a tabela de produtos
+};
 
 // Elementos do pedido
 const addToOrderButton = document.getElementById('add-to-order');

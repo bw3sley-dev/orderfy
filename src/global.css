@@ -244,6 +244,11 @@ nav a[data-current="true"] {
     gap: .5rem;
 }
 
+.form-item[data-orientation="vertical"] {
+    flex-direction: column;
+    align-items: start;
+}
+
 .form-item label {
     font-size: 0.875rem; /* Correspondente a text-sm */
     font-weight: 600; /* Correspondente a font-semibold */
@@ -251,6 +256,12 @@ nav a[data-current="true"] {
 
 .form-item input, .form-item select {
     flex: 1;
+}
+
+.grid-form {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
 }
 
 .cta {
@@ -464,6 +475,9 @@ nav a[data-current="true"] {
 
     padding: 1.5rem 2rem;
     border-top: 1px solid hsl(var(--border));
+
+    z-index: 1;
+    background-color: hsl(var(--background));
 }
 
 .finish-order {
@@ -521,6 +535,10 @@ nav a[data-current="true"] {
 
     .top-products-chart {
         grid-column: span 3 / span 3;
+    }
+
+    .table-wrapper > button {
+        align-self: start;
     }
 }
 
