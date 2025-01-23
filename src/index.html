@@ -47,7 +47,16 @@
 
             <div class="slot">
                 <div class="container" id="dashboard">
-                    <h1 class="title">Dashboard</h1>
+                    <div class="header">
+                        <h1 class="title">
+                            Dashboard
+                        </h1>
+
+                        <button type="button" class="cta cta-outline" id="export-dashboard">
+                            <i class="ph ph-file-xls"></i>
+                            Exportar Dados
+                        </button>
+                    </div>
 
                     <div class="dashboard-cards">
                         <div class="card">
@@ -228,6 +237,11 @@
                         <div class="finish-order">
                             <div class="total">Total: <span class="total-value" id="order-total">R$ 0.00</span></div>
                             <button type="button" class="cta cta-primary" id="finalize-order">Finalizar pedido</button>
+                        </div>
+
+                        <div class="form-item textarea">
+                            <!-- <label for="order-description">Descrição do pedido</label> -->
+                            <textarea id="order-description" class="form-control" placeholder="Digite uma descrição para o pedido"></textarea>
                         </div>
                     </div>
                 </div>

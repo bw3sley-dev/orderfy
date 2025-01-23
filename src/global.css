@@ -331,11 +331,17 @@ nav a[data-current="true"] {
     border: none; /* Remove a borda */
   }
   
-  .cta-ghost:hover {
+.cta-ghost:hover {
     background-color: hsl(var(--accent)); /* Fundo ao passar o mouse */
     color: hsl(var(--accent-foreground)); /* Texto ao passar o mouse */
-  }
-  
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
 
 .form-control, .form-select {
   display: flex;

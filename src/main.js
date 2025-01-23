@@ -796,6 +796,71 @@ const copyOrder = (orderId) => {
       });
 };
 
+const exportDashboardButton = document.getElementById('export-dashboard');
+
+exportDashboardButton.addEventListener('click', () => {
+    // Obter os dados do Dashboard
+    const totalRevenue = document.getElementById('total-revenue').textContent;
+    const totalOrdersMonth = document.getElementById('total-orders-month').textContent;
+    const totalOrdersDay = document.getElementById('total-orders-day').textContent;
+    const topProduct = document.getElementById('top-product').textContent;
+
+    // Obter os pedidos do dia
+    const allOrders = JSON.parse(localStorage.getItem('allOrders')) || [];
+    const today = new Date().toISOString().split('T')[0];
+    const todayOrders = allOrders.filter(order => new Date(order.id).toISOString().split('T')[0] === today);
+
+    // Agrupar os produtos mais vendidos do dia
+    const productCounts = {};
+    todayOrders.forEach(order => {
+        order.items.forEach(item => {
+            productCounts[item.name] = (productCounts[item.name] || 0) + item.quantity;
+        });
+    });
+
+    // Encontrar o produto mais vendido do dia
+    const topProductToday = Object.entries(productCounts)
+        .sort((a, b) => b[1] - a[1])[0] || ['Nenhum', 0];
+
+    // Estruturar os dados em arrays de objetos
+    const dashboardData = [
+        { Indicador: 'Receita Total (mês)', Valor: totalRevenue },
+        { Indicador: 'Pedidos (mês)', Valor: totalOrdersMonth },
+        { Indicador: 'Pedidos (dia)', Valor: totalOrdersDay },
+        { Indicador: 'Produto Mais Vendido', Valor: topProduct },
+    ];
+
+    const ordersData = todayOrders.map((order, index) => ({
+        ID: index + 1,
+        Itens: order.items.map(item => `${item.quantity}x ${item.name}`).join(', '),
+        Total: `R$ ${order.total.toFixed(2)}`,
+        Descrição: order.description || 'Sem descrição',
+        Data: order.date,
+    }));
+
+    const topProductsTodayData = [
+        { Produto: topProductToday[0], Quantidade: topProductToday[1] },
+    ];
+
+    // Criar a planilha Excel
+    const workbook = XLSX.utils.book_new();
+
+    // Adicionar os dados do Dashboard
+    const dashboardSheet = XLSX.utils.json_to_sheet(dashboardData);
+    XLSX.utils.book_append_sheet(workbook, dashboardSheet, 'Dashboard');
+
+    // Adicionar os pedidos do dia
+    const ordersSheet = XLSX.utils.json_to_sheet(ordersData);
+    XLSX.utils.book_append_sheet(workbook, ordersSheet, 'Pedidos do Dia');
+
+    // Adicionar os produtos mais vendidos do dia
+    const topProductsSheet = XLSX.utils.json_to_sheet(topProductsTodayData);
+    XLSX.utils.book_append_sheet(workbook, topProductsSheet, 'Mais Vendidos Hoje');
+
+    // Salvar o arquivo Excel
+    XLSX.writeFile(workbook, 'dashboard-completo.xlsx');
+});
+
 
 window.addEventListener('resize', () => {
     if (weeklyRevenueChart) weeklyRevenueChart.resize();
