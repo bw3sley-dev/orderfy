@@ -306,6 +306,15 @@ nav a[data-current="true"] {
     background-color: hsl(var(--primary) / 0.8); /* Correspondente a hover:bg-secondary/80 */
 }
 
+.cta-secondary {
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+}
+
+.cta-secondary:hover {
+    background-color: hsl(var(--secondary) / 0.8);
+}
+
 .cta-outline {
     border: 1px solid hsl(var(--input)); /* Exclusivo: borda com cor definida */
     background-color: hsl(var(--background)); /* Exclusivo: cor de fundo */

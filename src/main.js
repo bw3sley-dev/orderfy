@@ -522,7 +522,11 @@ const loadOrders = () => {
         <td>R$ ${order.total.toFixed(2)}</td>
         <td>${order.date}</td>
         <td class="actions">
-          <button type="button" class="cta cta-outline" id="print-order-${index}">Imprimir</button>
+          <button type="button" class="cta cta-secondary" id="print-order-${index}">Imprimir</button>
+          <button type="button" class="cta cta-outline" onclick="copyOrder('${order.id}')">
+              <i class="ph ph-copy"></i>
+              Copiar
+          </button>
           <button type="button" class="cta cta-ghost" onclick="deleteOrder('${order.id}')">
               <i class="ph ph-x"></i>
               Cancelar
@@ -734,15 +738,6 @@ const viewOrderDetails = (orderId) => {
     }
 };
 
-// Chamar a função ao clicar na aba "Listar Pedidos"
-// menuAllOrders.addEventListener('click', () => {
-//     dashboard.classList.add('hidden');
-//     productForm.classList.add('hidden');
-//     orderForm.classList.add('hidden');
-//     allOrdersForm.classList.remove('hidden');
-//     loadOrders();
-// });
-
 document.getElementById('export-products').addEventListener('click', () => {
     const products = JSON.parse(localStorage.getItem('products')) || [];
 
@@ -774,6 +769,33 @@ document.getElementById('export-orders').addEventListener('click', () => {
 
     XLSX.writeFile(workbook, 'pedidos.xlsx');
 });
+
+const copyOrder = (orderId) => {
+  const allOrders = JSON.parse(localStorage.getItem('allOrders')) || [];
+  const order = allOrders.find(order => order.id === orderId);
+
+  if (!order) {
+      alert('Pedido não encontrado!');
+      return;
+  }
+
+  // Gerar a mensagem formatada
+  const itemsText = order.items
+      .map(item => `${item.quantity}x - ${item.name}`)
+      .join('\n');
+  
+  const message = `Então, seu pedido vai ser:\n\n${itemsText}\n\n${order.description || ''}`;
+
+  // Copiar para a área de transferência
+  navigator.clipboard.writeText(message)
+      .then(() => {
+          alert('Pedido copiado!');
+      })
+      .catch(() => {
+          alert('Erro ao copiar o pedido. Tente novamente!');
+      });
+};
+
 
 window.addEventListener('resize', () => {
     if (weeklyRevenueChart) weeklyRevenueChart.resize();
