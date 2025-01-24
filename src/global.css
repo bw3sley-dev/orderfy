@@ -296,6 +296,16 @@ nav a[data-current="true"] {
     font-size: 1rem;
 }
 
+.cta.cta-icon {
+    flex-shrink: 0;
+    height: 2rem;
+    width: 2rem;
+}
+
+.theme-toggle {
+    margin-left: auto;
+}
+
 .cta-primary {
     background-color: hsl(var(--primary)); /* Correspondente a bg-primary */
     color: hsl(var(--primary-foreground)); /* Correspondente a text-secondary-foreground */

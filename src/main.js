@@ -262,88 +262,98 @@ const renderWeeklyRevenueChart = (orders) => {
     });
 };
 
-let topProductsChart; // Variável global para armazenar o gráfico de produtos mais vendidos
+const themeToggleButton = document.getElementById('theme-toggle');
+const rootElement = document.documentElement;
 
+// Variável global para armazenar o gráfico de produtos mais vendidos
+let topProductsChart;
+
+// Função para recriar o gráfico de Top Products
 const renderTopProductsChart = (productCounts) => {
-  const ctx = document.getElementById('top-products-chart').getContext('2d');
-  const sortedProducts = Object.entries(productCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 12);
+    const ctx = document.getElementById('top-products-chart').getContext('2d');
+    const sortedProducts = Object.entries(productCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 12);
 
-  // Função para truncar labels longas
-  const truncateLabel = (label, maxLength = 15) => {
-    return label.length > maxLength ? `${label.slice(0, maxLength)}...` : label;
-  };
+    // Destroi o gráfico existente antes de criar um novo
+    if (topProductsChart) {
+        topProductsChart.destroy();
+    }
 
-  // Destroi o gráfico existente antes de criar um novo
-  if (topProductsChart) {
-    topProductsChart.destroy();
-  }
+    // Define as cores com base no tema atual
+    const isDark = rootElement.classList.contains('dark');
+    const borderColor = isDark ? '#000000' : '#FFF'; // Branco para dark, preto para light
 
-  // Criação do gráfico de rosca estilizado
-  topProductsChart = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: sortedProducts.map(p => truncateLabel(`${p[0]} (${p[1]})`)), // Inclui o nome e valor no rótulo
-      datasets: [{
-        data: sortedProducts.map(p => p[1]),
-        backgroundColor: [
-          '#FF6384', '#36A2EB', '#FFCE56', '#4CAF50', '#FF9F40', '#9966FF',
-          '#FFCD56', '#FF6F91', '#A7FFEB', '#8C9EFF', '#B9FBC0', '#FFC400'
-        ],
-        borderColor: '#000', // Borda branca entre os elementos
-        borderWidth: 16, // Largura da borda visível
-        cutout: '75%', // Tamanho do corte central para deixar o donut mais fino
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false // Remove a legenda padrão
+    // Criação do gráfico
+    topProductsChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: sortedProducts.map(p => `${p[0]} (${p[1]})`),
+            datasets: [{
+                data: sortedProducts.map(p => p[1]),
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4CAF50',
+                    '#FF9F40', '#9966FF', '#FFCD56', '#FF6F91',
+                    '#A7FFEB', '#8C9EFF', '#B9FBC0', '#FFC400',
+                ],
+                borderColor: borderColor, // Cor da borda baseada no tema
+                borderWidth: 8,
+            }],
         },
-        tooltip: {
-          enabled: true // Tooltip para detalhes ao passar o mouse
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                },
+            },
         },
-        datalabels: {
-          color: '#b7b7b7', // Cor dos rótulos
-          font: {
-            size: 12
-          }
-        }
-      },
-      layout: {
-        padding: 24 // Espaçamento ao redor do gráfico
-      },
-    },
-    plugins: [{
-      id: 'externalLabels', // Plugin para posicionar os rótulos externos
-      beforeDraw(chart) {
-        const { ctx, chartArea, data } = chart;
-        const centerX = (chartArea.left + chartArea.right) / 2;
-        const centerY = (chartArea.top + chartArea.bottom) / 2;
-
-        ctx.textAlign = 'center';
-        ctx.font = '12px Rubik';
-
-        data.labels.forEach((label, i) => {
-        //   const angle = chart.getDatasetMeta(0).data[i].startAngle +
-        //     (chart.getDatasetMeta(0).data[i].endAngle - chart.getDatasetMeta(0).data[i].startAngle) / 2;
-
-        //   const radius = chart.getDatasetMeta(0).data[i].outerRadius;
-
-        //   // Calcula a posição das labels externas com ajuste para evitar sobreposição
-        //   const x = centerX + Math.cos(angle) * (radius + 30); // Distância extra do centro
-        //   const y = centerY + Math.sin(angle) * (radius + 30);
-
-          ctx.fillStyle = '#b7b7b7';
-        //   ctx.fillText(label, x, y);
-        });
-      }
-    }]
-  });
+    });
 };
+
+// Função para alternar o tema
+const toggleTheme = () => {
+    const isDark = rootElement.classList.contains('dark');
+
+    if (isDark) {
+        rootElement.classList.remove('dark'); // Tema claro
+        themeToggleButton.innerHTML = '<i class="ph ph-moon"></i>';
+        localStorage.setItem('theme', 'light');
+    } else {
+        rootElement.classList.add('dark'); // Tema escuro
+        themeToggleButton.innerHTML = '<i class="ph ph-sun"></i>';
+        localStorage.setItem('theme', 'dark');
+    }
+
+    // Atualiza o gráfico de Top Products se estiver na tela de dashboard
+    const currentSection = document.querySelector('.container:not(.hidden)').id;
+    if (currentSection === 'dashboard') {
+        const productCounts = {}; // Obtenha os dados reais do gráfico
+        const allOrders = JSON.parse(localStorage.getItem('allOrders')) || [];
+
+        allOrders.forEach(order => {
+            order.items.forEach(item => {
+                productCounts[item.name] = (productCounts[item.name] || 0) + item.quantity;
+            });
+        });
+
+        renderTopProductsChart(productCounts);
+    }
+};
+
+// Verificar o tema salvo no `localStorage` ao carregar a página
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark') {
+    rootElement.classList.add('dark');
+    themeToggleButton.innerHTML = '<i class="ph ph-sun"></i>';
+} else {
+    rootElement.classList.remove('dark');
+    themeToggleButton.innerHTML = '<i class="ph ph-moon"></i>';
+}
+
+// Adicionar o evento de clique ao botão
+themeToggleButton.addEventListener('click', toggleTheme);
 
 const importProductsInput = document.getElementById('import-products');
 
@@ -439,7 +449,6 @@ addToOrderButton.addEventListener('click', () => {
 
     updateOrderTable();
 });
-
 
 // Atualiza a tabela de itens do pedido
 const updateOrderTable = () => {
@@ -861,6 +870,8 @@ exportDashboardButton.addEventListener('click', () => {
     XLSX.writeFile(workbook, 'dashboard-completo.xlsx');
 });
 
+// Adicionar o evento de clique ao botão
+themeToggleButton.addEventListener('click', toggleTheme);
 
 window.addEventListener('resize', () => {
     if (weeklyRevenueChart) weeklyRevenueChart.resize();
