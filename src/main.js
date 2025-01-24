@@ -516,43 +516,76 @@ const allOrdersTableBody = document.getElementById('all-orders-table').querySele
 // Carregar pedidos na aba "Listar Pedidos"
 const loadOrders = () => {
   const allOrders = JSON.parse(localStorage.getItem('allOrders')) || [];
-  allOrdersTableBody.innerHTML = '';
+  allOrdersTableBody.innerHTML = ''; // Limpa o conteúdo existente
 
   allOrders.forEach((order, index) => {
-    const items = order.items
+    const row = document.createElement('tr');
+
+    // Coluna de ID
+    const idCell = document.createElement('td');
+    idCell.textContent = index + 1;
+    row.appendChild(idCell);
+
+    // Coluna de Itens
+    const itemsCell = document.createElement('td');
+    itemsCell.textContent = order.items
       .map(item => `${item.quantity}x ${item.name}`)
       .join(', ');
+    row.appendChild(itemsCell);
 
-    const row = `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${items}</td>
-        <td class="description" title="${order.description}">${order.description || 'Sem descrição'}</td>
-        <td>R$ ${order.total.toFixed(2)}</td>
-        <td>${order.date}</td>
-        <td class="actions">
-          <button type="button" class="cta cta-secondary" id="print-order-${index}">Imprimir</button>
-          <button type="button" class="cta cta-outline" onclick="copyOrder('${order.id}')">
-              <i class="ph ph-copy"></i>
-              Copiar
-          </button>
-          <button type="button" class="cta cta-ghost" onclick="deleteOrder('${order.id}')">
-              <i class="ph ph-x"></i>
-              Cancelar
-          </button>
-        </td>
-      </tr>
-    `;
+    // Coluna de Descrição
+    const descriptionCell = document.createElement('td');
+    descriptionCell.className = 'description';
+    descriptionCell.title = order.description || 'Sem descrição';
+    descriptionCell.textContent = order.description || 'Sem descrição';
+    row.appendChild(descriptionCell);
 
-    allOrdersTableBody.innerHTML += row;
+    // Coluna de Total
+    const totalCell = document.createElement('td');
+    totalCell.textContent = `R$ ${order.total.toFixed(2)}`;
+    row.appendChild(totalCell);
 
-    document.getElementById(`print-order-${index}`).addEventListener('click', () => {
+    // Coluna de Data
+    const dateCell = document.createElement('td');
+    dateCell.textContent = order.date;
+    row.appendChild(dateCell);
+
+    // Coluna de Ações
+    const actionsCell = document.createElement('td');
+    actionsCell.className = 'actions';
+
+    // Botão de Imprimir
+    const printButton = document.createElement('button');
+    printButton.type = 'button';
+    printButton.className = 'cta cta-secondary';
+    printButton.textContent = 'Imprimir';
+    printButton.addEventListener('click', () => {
       const zpl = generateZPL(index, order);
-
       printOrder(zpl);
     });
+    actionsCell.appendChild(printButton);
+
+    // Botão de Copiar
+    const copyButton = document.createElement('button');
+    copyButton.type = 'button';
+    copyButton.className = 'cta cta-outline';
+    copyButton.innerHTML = `<i class="ph ph-copy"></i> Copiar`;
+    copyButton.addEventListener('click', () => copyOrder(order.id));
+    actionsCell.appendChild(copyButton);
+
+    // Botão de Cancelar
+    const cancelButton = document.createElement('button');
+    cancelButton.type = 'button';
+    cancelButton.className = 'cta cta-ghost';
+    cancelButton.innerHTML = `<i class="ph ph-x"></i> Cancelar`;
+    cancelButton.addEventListener('click', () => deleteOrder(order.id));
+    actionsCell.appendChild(cancelButton);
+
+    row.appendChild(actionsCell);
+    allOrdersTableBody.appendChild(row);
   });
-}
+};
+
 
 const breakTextIntoLines = (text, maxCharsPerLine) => {
   const words = text.split(' ');
